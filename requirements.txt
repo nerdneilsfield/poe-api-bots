@@ -1,0 +1,7 @@
+fastapi_poe
+uvicorn
+langchain
+langchain-openai
+openai
+coloredlogs
+toml
