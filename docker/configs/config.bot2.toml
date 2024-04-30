@@ -1,0 +1,6 @@
+model = ""
+api_key = ""
+# like https://api.openai.com/v1
+api_base = ""
+poe_key = ""
+history_length = 6

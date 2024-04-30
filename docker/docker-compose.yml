@@ -1,0 +1,56 @@
+version: "3"
+
+networks:
+  proxy:
+    external: true
+
+services:
+
+  bot1:
+      container_name: bot1
+      image: ghcr.io/nerdneilsfield/ppoe-api-bots:latest
+      command: python3 bot/bot.py
+      restart: always
+      networks:
+        - proxy
+      volumes:
+        - ./configs/config.bot1.toml:/code/configs/config.toml
+      environment:
+        - "traefik.enable=false"
+
+  bot2:
+      container_name: bot2
+      image: ghcr.io/nerdneilsfield/ppoe-api-bots:latest
+      command: python3 bot/bot.py
+      restart: always
+      networks:
+        - proxy
+      volumes:
+        - ./configs/config.bot2.toml:/code/configs/config.toml
+      environment:
+        - "traefik.enable=false"
+
+  poe-nginx:
+    container_name: poe-nginx
+    image: nginx:alpine
+    restart: unless-stopped
+    networks:
+      - proxy
+    depends_on:
+      - bot1
+      - bot2
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - "traefik.http.routers.poe-nginx.entrypoints=vhttp"
+      - "traefik.http.routers.poe-nginx.rule=Host(`example.com`)"
+      - "traefik.http.routers.poe-nginx.middlewares=vhttps-redirect@docker"
+      - traefik.http.routers.poe-nginx-secure.entrypoints=vhttps
+      - "traefik.http.routers.poe-nginx-secure.rule=Host(`example.com`)"
+      - traefik.http.routers.poe-nginx-secure.tls=true
+      - traefik.http.routers.poe-nginx-secure.tls.certresolver=cloudflare
+      - "traefik.http.services.poe-nginx.loadbalancer.server.port=80"
