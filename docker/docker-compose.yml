@@ -8,7 +8,7 @@ services:
 
   bot1:
       container_name: bot1
-      image: ghcr.io/nerdneilsfield/ppoe-api-bots:latest
+      image: ghcr.io/nerdneilsfield/poe-api-bots:latest
       command: python3 bot/bot.py
       restart: always
       networks:
@@ -20,7 +20,7 @@ services:
 
   bot2:
       container_name: bot2
-      image: ghcr.io/nerdneilsfield/ppoe-api-bots:latest
+      image: ghcr.io/nerdneilsfield/poe-api-bots:latest
       command: python3 bot/bot.py
       restart: always
       networks:
