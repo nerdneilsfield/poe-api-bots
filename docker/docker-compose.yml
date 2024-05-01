@@ -46,10 +46,10 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
-      - "traefik.http.routers.poe-nginx.entrypoints=vhttp"
+      - "traefik.http.routers.poe-nginx.entrypoints=http"
       - "traefik.http.routers.poe-nginx.rule=Host(`example.com`)"
-      - "traefik.http.routers.poe-nginx.middlewares=vhttps-redirect@docker"
-      - traefik.http.routers.poe-nginx-secure.entrypoints=vhttps
+      - "traefik.http.routers.poe-nginx.middlewares=https-redirect@docker"
+      - traefik.http.routers.poe-nginx-secure.entrypoints=https
       - "traefik.http.routers.poe-nginx-secure.rule=Host(`example.com`)"
       - traefik.http.routers.poe-nginx-secure.tls=true
       - traefik.http.routers.poe-nginx-secure.tls.certresolver=cloudflare
