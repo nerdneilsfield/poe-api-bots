@@ -55,5 +55,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            # ghcr.io/${{ github.repository }}:latest
             docker.io/nerdneils/${{ env.IMAGE_NAME }}:latest
