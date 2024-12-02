@@ -7,4 +7,3 @@ Dockerfile
 .dockerignore
 hello.py
 LICENSE
-requirements.txt
