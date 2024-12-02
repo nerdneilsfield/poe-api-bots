@@ -1,5 +1,6 @@
+import logging
 from logger import LoggerManager, FastAPILogMiddleware, set_logger_manager, get_logger_manager, log_method
-from configs import AppConfig
+from configs import AppConfig, get_logger_manager_from_config
 from models import BotFactory
 
 import argparse
@@ -7,16 +8,29 @@ import argparse
 from fastapi import FastAPI
 import fastapi_poe as fp
 
+
 def main(app_config: AppConfig) -> FastAPI:
 
-    main_app = FastAPI()
     logger = get_logger_manager().get_logger("main")
+    
 
+    bots = []
     for bot_config in app_config.bot_configs:
         logger.info(f"Creating bot for {bot_config.bot_name}")
         bot = BotFactory.create_bot(bot_config.to_bot_config())
-        bot_app = fp.make_app(bot)
-        main_app.mount(bot_config.sub_url, bot_app)
+        bots.append(bot)
+        
+    main_app = fp.make_app(bots)
+    
+    
+    @main_app.get("/")
+    def root():
+        return {"message": "Hello World"}
+    
+    @main_app.get("/health")
+    def health():
+        return {"status": "ok"}
+
         
     return main_app
 
@@ -33,7 +47,7 @@ if __name__ == "__main__":
     
     main_app = main(app_config)
     
-    logger_manager = LoggerManager.from_app_config(app_config)
+    logger_manager = get_logger_manager_from_config(app_config)
     set_logger_manager(logger_manager)
     
     logger = get_logger_manager().get_logger("main")
@@ -44,6 +58,21 @@ if __name__ == "__main__":
     
     import uvicorn
     
-    uvicorn.run(main_app, host=app_config.listen_host, port=app_config.listen_port)
+    log_level = logging.INFO
+    
+    if app_config.console_log_level == "DEBUG":
+        log_level = logging.DEBUG
+    elif app_config.console_log_level == "INFO":
+        log_level = logging.INFO
+    elif app_config.console_log_level == "WARNING":
+        log_level = logging.WARNING
+    elif app_config.console_log_level == "ERROR":
+        log_level = logging.ERROR
+    elif app_config.console_log_level == "CRITICAL":
+        log_level = logging.CRITICAL
+    else:
+        log_level = logging.INFO
+    
+    uvicorn.run(main_app, host=app_config.listen_host, port=app_config.listen_port, log_level=log_level)
     
     

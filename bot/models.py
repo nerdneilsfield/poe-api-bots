@@ -9,7 +9,7 @@ from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
-from log_utils import get_logger
+from logger import get_logger
 
 class BotType(Enum):
     OPENAI = auto()
@@ -22,12 +22,11 @@ class BaseBotConfig(BaseModel):
     api_base: str = Field(default="https://api.openai.com/v1")
     api_key: str = Field(default="")
     poe_key: str = Field(default="")
-    host: str = Field(default="http://localhost:11434")
     history_length: int = Field(default=10)
     temperature: float = Field(default=0.7)
     # for ollama: Max number of tokens to generate.
     num_predict: int = Field(default=1024)
-
+    sub_url: str = Field(default="/bot")
 
 class BaseBot(fp.PoeBot):
     """
@@ -44,13 +43,18 @@ class BaseBot(fp.PoeBot):
         Args:
         config (BaseBotConfig): The config for the bot
         """
+        # init base bot
+        super().__init__()
         self.config = config
-        # self.bot_name = config.bot_name
+        self.bot_name = config.bot_name
         self.access_key = config.poe_key
-        self.chat_model = self.init_model()
-        
+        self.path = config.sub_url
         self.logger = get_logger(config.bot_name)
         self.logger.info(f"Bot {config.bot_name} initialized")
+        self.chat_model = self.init_model()
+        
+
+    
 
     @abstractmethod
     def init_model(self):
@@ -84,7 +88,7 @@ class BaseBot(fp.PoeBot):
         messages = self._prepare_messages(request)
 
         async for chunk in self.chat_model.astream(messages):
-            self.logger.debug(f"Bot {self.config.bot_name} generated chunk: {chunk.content}")
+            # self.logger.debug(f"Bot {self.config.bot_name} generated chunk: {chunk.content}")
             yield fp.PartialResponse(text=chunk.content)
 
     def _prepare_messages(self, request: fp.QueryRequest) -> List[HumanMessage | SystemMessage | AIMessage]:
@@ -151,9 +155,10 @@ class BaseBot(fp.PoeBot):
 class OllamaBot(BaseBot):
     @override
     def init_model(self):
+        self.logger.info(f"Initializing Ollama model {self.config.model} with host {self.config.api_base}")
         return ChatOllama(
             model=self.config.model,
-            host=self.config.host or "http://localhost:11434",
+            base_url=self.config.api_base or "http://localhost:11434",
             temperature=self.config.temperature,
             num_predict=self.config.num_predict,
         )
@@ -162,6 +167,8 @@ class OllamaBot(BaseBot):
 class OpenaiBot(BaseBot):
     @override
     def init_model(self):
+        logger = get_logger(self.config.bot_name)
+        logger.info(f"Initializing OpenAI model {self.config.model} with base url {self.config.api_base}")
         return ChatOpenAI(
             model=self.config.model,
             api_key=self.config.api_key,
@@ -174,6 +181,8 @@ class OpenaiBot(BaseBot):
 class BotFactory:
     @staticmethod
     def create_bot(config: BaseBotConfig) -> BaseBot:
+        logger = get_logger("BotFactory")
+        logger.info(f"Creating bot {config.bot_name} with type {config.bot_type}")
         if config.bot_type == BotType.OPENAI:
             return OpenaiBot(config)
         elif config.bot_type == BotType.OLLAMA:

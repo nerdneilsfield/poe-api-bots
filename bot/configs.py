@@ -1,11 +1,12 @@
 from models import BaseBotConfig, BotType
+from logger import LoggerManager
+
 
 import os
 from pathlib import Path
 import toml
 from pydantic import BaseModel, Field
 from typing import Optional, List
-
 
 class BotConfig(BaseModel):
     """
@@ -18,9 +19,6 @@ class BotConfig(BaseModel):
     poe_key: Optional[str] = Field(None, description="POE key")  # POE key
     bot_type: str = Field(default="openai", description="Bot type")  # Bot type
     bot_name: Optional[str] = Field(None, description="Bot name")  # Bot name
-    host: Optional[str] = Field(
-        default="http://localhost:11434", description="Model server host"
-    )  # Model server host
     history_length: int = Field(
         10, description="Number of messages to keep in history"
     )  # Number of messages to keep in history
@@ -41,23 +39,26 @@ class BotConfig(BaseModel):
         """
         
         model_type = BotType.OPENAI
+        print(f"Bot type: {self.bot_type}")
         if self.bot_type == "openai":
             model_type = BotType.OPENAI
         elif self.bot_type == "ollama":
             model_type = BotType.OLLAMA
         else:
             raise ValueError(f"Invalid bot type: {self.bot_type}")
+
     
         return BaseBotConfig(
-            model=model_type,
+            model=self.model,
+            bot_type=model_type,
             api_base=self.api_base,
             api_key=self.api_key,
             history_length=self.history_length,
-            host=self.host,
             poe_key=self.poe_key,
             bot_name=self.bot_name,
             temperature=self.temperature,
             num_predict=self.num_predict,
+            sub_url=self.sub_url,
         )
 
 
@@ -117,7 +118,6 @@ class AppConfig(BaseModel):
                     bot_type="openai",
                     sub_url="/bot",
                     history_length=10,
-                    host="http://localhost:11434",
                     api_base="https://api.openai.com/v1",
                     api_key="your_api_key",
                     poe_key="your_poe_key",
@@ -135,3 +135,11 @@ class AppConfig(BaseModel):
 
         with open(output_path, "w") as f:
             toml.dump(example_config.model_dump(), f)
+
+
+def get_logger_manager_from_config(config: AppConfig):
+    return LoggerManager(
+        console_level=config.console_log_level,
+        file_level=config.file_log_level,
+        log_file=config.log_file_path,
+    )
