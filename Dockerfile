@@ -1,18 +1,20 @@
-# Use a Python image with uv pre-installed
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+FROM python:3.13-slim
 
-# Install the project into `/app`
+ENV PYTHONFAULTHANDLER=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONHASHSEED=random
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PIP_NO_CACHE_DIR=off
+ENV PIP_DISABLE_PIP_VERSION_CHECK=on
+ENV PIP_DEFAULT_TIMEOUT=100
+
+RUN apt-get update
+RUN apt-get install -y python3 python3-pip
+
+RUN mkdir -p /app
+ADD . /app
 WORKDIR /app
 
-# Enable bytecode compilation
-ENV UV_COMPILE_BYTECODE=1
+RUN pip3 install -r requirements.txt
 
-# Copy from the cache instead of linking since it's a mounted volume
-ENV UV_LINK_MODE=copy
-
-ADD . /app/
-
-RUN uv sync --frozen --no-dev \
-    && uv pip install -e .
-
-CMD ["uv", "run", "bot/bot.py", "-c", "/app/configs/config.toml"]
+CMD ["python3", "bot/bot.py", "-c", "/app/configs/config.toml"]
