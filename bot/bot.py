@@ -13,7 +13,7 @@ def main(app_config: AppConfig) -> FastAPI:
     logger = get_logger_manager().get_logger("main")
 
     for bot_config in app_config.bot_configs:
-        logger.info(f"Creating bot for {bot_config.name}")
+        logger.info(f"Creating bot for {bot_config.bot_name}")
         bot = BotFactory.create_bot(bot_config.to_bot_config())
         bot_app = fp.make_app(bot)
         main_app.mount(bot_config.sub_url, bot_app)

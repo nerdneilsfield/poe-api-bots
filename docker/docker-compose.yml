@@ -7,12 +7,13 @@ networks:
 services:
   poe-bot:
       container_name: poe-bot
-      image: ghcr.io/nerdneilsfield/poe-api-bots:latest
+      image: nerdneils/poe-api-bots:latest
       restart: always
       networks:
         - proxy
       volumes:
         - ./configs/config.toml:/app/configs/config.toml
+        - ./logs:/app/logs
       labels:
         - traefik.enable=true
         - traefik.docker.network=proxy
@@ -23,4 +24,4 @@ services:
         - traefik.http.routers.poe-bot-secure.rule=Host(`example.com`)"
         - traefik.http.routers.poe-bot-secure.tls=true
         - traefik.http.routers.poe-bot-secure.tls.certresolver=cloudflare
-        - traefik.http.services.poe-bot.loadbalancer.server.port=80
+        - traefik.http.services.poe-bot.loadbalancer.server.port=51245

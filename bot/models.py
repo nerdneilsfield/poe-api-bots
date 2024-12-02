@@ -9,7 +9,8 @@ from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
-from logger import get_logger_manager
+from log_utils import get_logger
+
 class BotType(Enum):
     OPENAI = auto()
     OLLAMA = auto()
@@ -48,7 +49,7 @@ class BaseBot(fp.PoeBot):
         self.access_key = config.poe_key
         self.chat_model = self.init_model()
         
-        self.logger = get_logger_manager().get_logger(config.bot_name)
+        self.logger = get_logger(config.bot_name)
         self.logger.info(f"Bot {config.bot_name} initialized")
 
     @abstractmethod

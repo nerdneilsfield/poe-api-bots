@@ -27,6 +27,12 @@ class BotConfig(BaseModel):
     sub_url: Optional[str] = Field(
         default="/bot", description="Sub URL for this bot"
     )  # Sub URL for this bot
+    temperature: float = Field(
+        default=0.7, description="Temperature for the bot"
+    )  # Temperature for the bot
+    num_predict: int = Field(
+        default=2048, description="Number of tokens to predict"
+    )  # Number of tokens to predict
     
     
     def to_bot_config(self) -> BaseBotConfig:
@@ -50,6 +56,8 @@ class BotConfig(BaseModel):
             host=self.host,
             poe_key=self.poe_key,
             bot_name=self.bot_name,
+            temperature=self.temperature,
+            num_predict=self.num_predict,
         )
 
 
