@@ -160,3 +160,6 @@ cython_debug/
 #.idea/
 
 env/
+.vscode/
+test_config.toml
+logs/

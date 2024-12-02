@@ -1,0 +1,10 @@
+.github/*
+.vscode/*
+test_config.toml
+doc/*
+docker/*
+Dockerfile
+.dockerignore
+hello.py
+LICENSE
+requirements.txt
